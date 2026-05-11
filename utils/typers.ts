@@ -9,7 +9,7 @@ export type ExtendedClientEvents<Name extends keyof ClientEvents> = [
 
 export type TemplateEventListener<Name extends keyof ClientEvents> = (
   ...args: ExtendedClientEvents<Name>
-) => void | Promise<void>;
+) => Promise<void>;
 
 export function TemplateEvent<Name extends keyof ClientEvents>(
   listener: TemplateEventListener<Name>,

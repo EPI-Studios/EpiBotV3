@@ -1,76 +1,42 @@
-import type { Client, ClientEvents, InteractionType } from "discord.js";
-import { TemplateEvent, type TemplateEventListener } from "../typers";
-import { Database } from "bun:sqlite";
-
-let modules: ModuleBuilder[] = [];
-
-export class EventModule<
-  Event extends keyof ClientEvents = keyof ClientEvents,
-> {
-  constructor(public name: string) {
-    this.name = name;
-  }
-
-  private _filepath: string = "";
-
-  set filepath(value: string) {
-    this._filepath = value;
-  }
-
-  get filepath() {
-    return this._filepath;
-  }
-
-  async getListener(): Promise<TemplateEventListener<Event>> {
-    const { default: event } = await import(this.filepath);
-    return event as TemplateEventListener<Event>;
-  }
-}
-export class InteractionModule<
-  Type extends InteractionType = InteractionType,
-> {}
+import type { Client, ClientEvents, SlashCommandBuilder } from "discord.js";
+import { type TemplateEventListener } from "../typers";
+import { addEvent, addSlashCommand } from "./registers";
+import type db from "../db";
 
 export class RegisterModule {}
 
-export default class ModuleBuilder<
-  Options extends { [key: string]: string | number | boolean } = {
-    [key: string]: string | number | boolean;
-  },
+export default abstract class ModuleBuilder<
+  Dependencies extends { [key: string]: any } = {},
 > {
-  events: EventModule[] = [];
-  interactions: InteractionModule[] = [];
-  db: Database | null = null;
-
   constructor(
-    public name: string,
-    dependecies?: Partial<{ db: Database }>,
+    public options: Dependencies & { db: typeof db; client: Client },
   ) {
-    this.name = name;
-
-    if (dependecies) {
-      if (dependecies.db) this.db = dependecies.db;
-    }
+    this.options = options;
   }
+}
 
-  async populateEvents() {
-    return this;
-  }
+export function SlashCommand(name: string, description: string) {
+  return (
+    target: any,
+    propertyKey: string,
+    descriptor: TypedPropertyDescriptor<
+      (...args: any[]) => SlashCommandBuilder
+    >,
+  ) => {
+    const val = descriptor.value!;
+    addSlashCommand(val().setName(name).setDescription(description));
+    return descriptor;
+  };
+}
 
-  async load(client: Client, options: Options) {
-    for (let event of this.events) {
-      const listener = await event.getListener();
-
-      client.on(event.name, (async (
-        ...args: ClientEvents[keyof ClientEvents]
-      ) => {
-        await listener(...args, options);
-      }) as TemplateEventListener<keyof ClientEvents>);
-    }
-
-    return this;
-  }
-
-  register() {
-    modules.push(this);
-  }
+export function Event<E extends keyof ClientEvents>(event: E) {
+  return (
+    target: any,
+    propertyKey: string,
+    descriptor: TypedPropertyDescriptor<TemplateEventListener<E>>,
+  ) => {
+    const val = descriptor.value!;
+    addEvent({ name: event, exec: val });
+    return descriptor;
+  };
 }
