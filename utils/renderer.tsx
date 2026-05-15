@@ -1,5 +1,6 @@
 import path from "path";
 import { ImageResponse } from "@vercel/og";
+import { pathToFileURL } from "url";
 
 export async function renderComponentToPng(
   componentName: string,
@@ -10,8 +11,7 @@ export async function renderComponentToPng(
     "components",
     `${componentName}.tsx`,
   );
-  let Module = (await import(componentPath)).default;
-  console.log(Module);
+  let Module = await (await import(pathToFileURL(componentPath).href)).default;
   const image = new ImageResponse(<Module.element {...props} />, {
     width: Module.width,
     height: Module.height,

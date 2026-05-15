@@ -1,11 +1,4 @@
 import type {
-  AnySelectMenuInteraction,
-  ButtonInteraction,
-  ChatInputCommandInteraction,
-  InteractionEditReplyOptions,
-  InteractionType,
-  MessagePayload,
-  ModalSubmitInteraction,
   SlashCommandBuilder,
   SlashCommandOptionsOnlyBuilder,
   SlashCommandSubcommandGroupBuilder,
