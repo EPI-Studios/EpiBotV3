@@ -7,19 +7,28 @@ import type {
   MessagePayload,
   ModalSubmitInteraction,
   SlashCommandBuilder,
+  SlashCommandOptionsOnlyBuilder,
+  SlashCommandSubcommandGroupBuilder,
+  SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
 import type { TemplateEventListener } from "../typers";
 import type { TInter } from "./ModuleBuilder";
 
-let registeredSlashCommand: SlashCommandBuilder[] = [];
+type s =
+  | SlashCommandBuilder
+  | SlashCommandSubcommandsOnlyBuilder
+  | SlashCommandOptionsOnlyBuilder
+  | SlashCommandSubcommandGroupBuilder;
+
+let registeredSlashCommand: s[] = [];
 
 export function getSlashCommands() {
   return registeredSlashCommand;
 }
-export function setSlashCommands(s: SlashCommandBuilder[]) {
+export function setSlashCommands(s: s[]) {
   registeredSlashCommand = s;
 }
-export function addSlashCommand(s: SlashCommandBuilder) {
+export function addSlashCommand(s: s) {
   registeredSlashCommand.push(s);
 }
 

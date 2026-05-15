@@ -1,13 +1,12 @@
-import {
-  Client,
-  EmbedBuilder,
-  type CacheType,
-  type Interaction,
-} from "discord.js";
+import { EmbedBuilder, type CacheType, type Interaction } from "discord.js";
 import ModuleBuilder, { Event } from "../utils/module/ModuleBuilder";
 import { getInteractions } from "../utils/module/registers";
 
 export default class InteractionModule extends ModuleBuilder {
+  constructor() {
+    super(import.meta.dirname);
+  }
+
   @Event("interactionCreate")
   async onInteractionCreate(interaction: Interaction<CacheType>) {
     if (interaction.user.bot) return;
@@ -26,6 +25,7 @@ export default class InteractionModule extends ModuleBuilder {
        * We loop though already registered interactions, and filtering for the right types.
        */
       const commands = getInteractions().filter((v) => v.type == "command");
+
       const command = commands.find(
         (c) => c.identifier === interaction.commandName,
       );
@@ -40,9 +40,8 @@ export default class InteractionModule extends ModuleBuilder {
           command.ephemeral ? { flags: ["Ephemeral"] } : undefined,
         );
 
-        const res = await command.exec(interaction); // Special: "responses" are "returns" in the interaction functions.
-
-        await interaction.editReply(res);
+        const res = await command.exec(interaction, { now: Date.now() }); // Special: "responses" are "returns" in the interaction functions.
+        if (res) await interaction.editReply(res);
       } else {
         /**
          * Instead of letting "nothing" happen, we let the user know that the command doesn't exist...

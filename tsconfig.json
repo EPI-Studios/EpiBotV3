@@ -2,18 +2,20 @@
   "compilerOptions": {
     // Environment setup & latest features
     "lib": ["ESNext"],
-    "target": "ESNext",
+    "target": "esnext",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "allowJs": true,
-    "types": ["node", "bun"],
+    "types": ["node"],
+    "module": "esnext",
+
+    "allowImportingTsExtensions": false,
 
     // Bundler mode
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "noEmit": true,
 
     // Best practices

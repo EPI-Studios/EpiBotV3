@@ -2,12 +2,10 @@ import type {
   AnySelectMenuInteraction,
   ButtonInteraction,
   ChatInputCommandInteraction,
-  Client,
   ClientEvents,
   InteractionEditReplyOptions,
   MessagePayload,
   ModalSubmitInteraction,
-  SlashCommandBuilder,
 } from "discord.js";
 import { type TemplateEventListener } from "../typers";
 import { addInteraction, addSlashCommand } from "./registers";
@@ -15,6 +13,7 @@ import client from "../../client";
 import path from "path";
 import { existsSync } from "fs";
 import loadDirectoryList from "../loadDirectoryList";
+import { pathToFileURL } from "url";
 
 export type AnyInter =
   | ChatInputCommandInteraction
@@ -33,9 +32,9 @@ export type TInter<IType extends AnyInter = AnyInter> = {
 };
 
 export default abstract class ModuleBuilder {
-  constructor() {
-    const eventsFolder = path.join(__dirname, "events");
-    const interactionFolder = path.join(__dirname, "interactions");
+  constructor(moduleDir: string) {
+    const eventsFolder = path.join(moduleDir, "events");
+    const interactionFolder = path.join(moduleDir, "interactions");
 
     (async () => {
       if (existsSync(eventsFolder)) {
@@ -43,7 +42,7 @@ export default abstract class ModuleBuilder {
 
         for (let key in files) {
           for (let path of files[key]!) {
-            const { default: exec } = await import(path);
+            const { default: exec } = await import(pathToFileURL(path).href);
             client.on(key, exec);
           }
         }
@@ -62,7 +61,7 @@ export default abstract class ModuleBuilder {
               type,
               identifier,
               ephemeral,
-            } = (await import(path)) as TInter & {
+            } = (await import(pathToFileURL(path).href)) as TInter & {
               default: TInter["exec"];
             };
 
@@ -80,13 +79,7 @@ export default abstract class ModuleBuilder {
 }
 
 export function SlashCommand(name: string, description: string) {
-  return (
-    _1: any,
-    _2: string,
-    descriptor: TypedPropertyDescriptor<
-      (...args: any[]) => SlashCommandBuilder
-    >,
-  ) => {
+  return (_1: any, _2: string, descriptor: PropertyDescriptor) => {
     const val = descriptor.value!;
     addSlashCommand(val().setName(name).setDescription(description));
     return descriptor;

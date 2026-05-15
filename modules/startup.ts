@@ -5,8 +5,11 @@ import ModuleBuilder, {
 } from "../utils/module/ModuleBuilder";
 import chalk from "chalk";
 import { getSlashCommands } from "../utils/module/registers";
-
 export default class StartupModule extends ModuleBuilder {
+  constructor() {
+    super(import.meta.dirname);
+  }
+
   @Event("clientReady")
   async setupSlashCommands(client: Client<true>) {
     console.log(
