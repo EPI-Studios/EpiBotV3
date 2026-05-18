@@ -22,7 +22,5 @@ export default class WelcomeModule extends ModuleBuilder {
       files: [attachment],
       content: `<@${member.user.id}>`,
     });
-
-    await member.roles.add("1461669643306663999");
   }
 }

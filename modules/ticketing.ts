@@ -4,6 +4,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   CategoryChannel,
+  channelMention,
   roleMention,
   userMention,
   type Client,
@@ -52,7 +53,9 @@ export default class TicketingModule extends ModuleBuilder {
     );
 
     if (existingTicket) {
-      const embed = await embeds.error(`You already have a open ticket!`);
+      const embed = await embeds.error(
+        `Tu as déjà un ticket ouvert ! ${channelMention(existingTicket.id)}`,
+      );
       await interaction.reply({ flags: ["Ephemeral"], embeds: [embed] });
     } else {
       const modRole = await interaction.guild.roles.fetch(settings.modRoleId);
@@ -65,9 +68,9 @@ export default class TicketingModule extends ModuleBuilder {
           name: interaction.user.displayName,
           iconURL: interaction.user.displayAvatarURL(),
         })
-        .setTitle("Ticket Created")
+        .setTitle("Ticket Créé")
         .setDescription(
-          `${interaction.user.displayName}, your ticket has been created. Staff is coming soon.`,
+          `${interaction.user.displayName}, ton ticket a été créé. Le staff arrive bientôt.`,
         );
 
       const channel = await categoryChannel.children.create({
@@ -82,6 +85,10 @@ export default class TicketingModule extends ModuleBuilder {
             allow: "ViewChannel",
           },
           {
+            id: interaction.client.user,
+            allow: "ViewChannel",
+          },
+          {
             id: modRole,
             allow: "ViewChannel",
           },
@@ -91,7 +98,7 @@ export default class TicketingModule extends ModuleBuilder {
       const closeButton = new ButtonBuilder()
         .setEmoji("❌")
         .setCustomId("close-ticket")
-        .setLabel("Close")
+        .setLabel("Fermer")
         .setStyle(ButtonStyle.Danger);
 
       await channel.send({
@@ -104,7 +111,7 @@ export default class TicketingModule extends ModuleBuilder {
 
       await interaction.reply({
         flags: ["Ephemeral"],
-        embeds: [await embeds.success("Ticket Created")],
+        embeds: [await embeds.success("Ticket Créé")],
       });
 
       const logsChannel = (await interaction.guild.channels.fetch(
@@ -112,7 +119,7 @@ export default class TicketingModule extends ModuleBuilder {
       )) as TextChannel;
 
       const embed2 = await embeds.base();
-      embed2.setTitle("Ticket Created").setFields({
+      embed2.setTitle("Ticket Créé").setFields({
         name: "Author",
         value: interaction.user.username,
         inline: false,
@@ -135,7 +142,7 @@ export default class TicketingModule extends ModuleBuilder {
 
     if (!member.roles.cache.has(settings.modRoleId)) {
       const embed = await embeds.error(
-        "You can't do that. Ask for a moderator instead.",
+        "Tu ne peux faire ça ! Demande à un staff de le faire pour toi.",
       );
 
       await interaction.reply({ embeds: [embed], flags: ["Ephemeral"] });
@@ -161,14 +168,14 @@ export default class TicketingModule extends ModuleBuilder {
       if (err) return console.error(err);
 
       const embed = await embeds.base();
-      embed.setTitle("Ticket Closed").setFields(
+      embed.setTitle("Ticket Fermé").setFields(
         {
-          name: "Author",
+          name: "Auteur",
           value: (interaction.channel as TextChannel).name,
           inline: false,
         },
         {
-          name: "Closed by",
+          name: "Fermé par",
           value: `${interaction.user.username}`,
         },
       );
@@ -195,7 +202,7 @@ export default class TicketingModule extends ModuleBuilder {
     if (settings.messageId === "") {
       const button = new ButtonBuilder()
         .setCustomId("open-ticket")
-        .setLabel("Open Ticket")
+        .setLabel("Ouvrir un ticket")
         .setEmoji("🎟️")
         .setStyle(ButtonStyle.Secondary);
 
@@ -206,7 +213,7 @@ export default class TicketingModule extends ModuleBuilder {
           iconURL: guild.iconURL() || undefined,
         })
         .setDescription(
-          "Press the button below to create a ticket channel, staff will reply!",
+          "Clique sur le bouton ci-dessous pour ouvrir un ticket et contacter le staff !",
         )
         .setTitle("Open a Ticket")
         .setImage(guild.bannerURL())
